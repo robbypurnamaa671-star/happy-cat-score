@@ -1,12 +1,27 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { Home } from '@/components/Home';
+import { DailyCheck } from '@/components/DailyCheck';
+import { History } from '@/components/History';
+
+type View = 'home' | 'check' | 'history';
 
 const Index = () => {
+  const [view, setView] = useState<View>('home');
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="font-nunito">
+      {view === 'home' && (
+        <Home
+          onStartCheck={() => setView('check')}
+          onViewHistory={() => setView('history')}
+        />
+      )}
+      {view === 'check' && (
+        <DailyCheck onComplete={() => setView('home')} />
+      )}
+      {view === 'history' && (
+        <History onBack={() => setView('home')} />
+      )}
     </div>
   );
 };
