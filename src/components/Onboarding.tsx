@@ -49,8 +49,9 @@ export function Onboarding({ onAddCat }: OnboardingProps) {
 
         {/* CTA Button */}
         <button
+          type="button"
           onClick={onAddCat}
-          className="w-full py-5 bg-primary text-primary-foreground rounded-2xl font-bold text-lg shadow-warm hover:opacity-90 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+          className="relative z-10 w-full py-5 bg-primary text-primary-foreground rounded-2xl font-bold text-lg shadow-warm hover:opacity-90 transition-all active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer"
         >
           <PawPrint className="w-6 h-6" />
           Add Your First Cat
