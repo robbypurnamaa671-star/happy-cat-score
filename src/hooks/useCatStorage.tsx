@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { CatProfile, DailyCheckResult } from '@/types/catCare';
 
 const STORAGE_KEY = 'cat_care_data';
@@ -8,7 +8,23 @@ interface StorageData {
   activeCatId: string | null;
 }
 
-export function useCatStorage() {
+interface CatStorageContextType {
+  cats: CatProfile[];
+  activeCat: CatProfile | null;
+  activeCatId: string | null;
+  isLoaded: boolean;
+  addCat: (cat: Omit<CatProfile, 'id' | 'createdAt' | 'careLogs'>) => CatProfile;
+  updateCat: (catId: string, updates: Partial<Omit<CatProfile, 'id' | 'createdAt' | 'careLogs'>>) => void;
+  deleteCat: (catId: string) => void;
+  selectCat: (catId: string) => void;
+  saveCareLog: (catId: string, result: DailyCheckResult) => void;
+  getTodaysLog: (catId: string) => DailyCheckResult | undefined;
+  getConsecutiveNoPoop: (catId: string) => number;
+}
+
+const CatStorageContext = createContext<CatStorageContextType | null>(null);
+
+export function CatStorageProvider({ children }: { children: ReactNode }) {
   const [cats, setCats] = useState<CatProfile[]>([]);
   const [activeCatId, setActiveCatId] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -75,18 +91,20 @@ export function useCatStorage() {
   }, [cats, saveData]);
 
   const saveCareLog = useCallback((catId: string, result: DailyCheckResult) => {
-    const newCats = cats.map(cat => {
-      if (cat.id !== catId) return cat;
-      // Replace existing log for same date or add new
-      const existingIndex = cat.careLogs.findIndex(log => log.date === result.date);
-      const newLogs = existingIndex >= 0
-        ? cat.careLogs.map((log, i) => i === existingIndex ? result : log)
-        : [result, ...cat.careLogs].slice(0, 30);
-      return { ...cat, careLogs: newLogs };
+    setCats(prevCats => {
+      const newCats = prevCats.map(cat => {
+        if (cat.id !== catId) return cat;
+        // Replace existing log for same date or add new
+        const existingIndex = cat.careLogs.findIndex(log => log.date === result.date);
+        const newLogs = existingIndex >= 0
+          ? cat.careLogs.map((log, i) => i === existingIndex ? result : log)
+          : [result, ...cat.careLogs].slice(0, 30);
+        return { ...cat, careLogs: newLogs };
+      });
+      saveData(newCats, activeCatId);
+      return newCats;
     });
-    setCats(newCats);
-    saveData(newCats, activeCatId);
-  }, [cats, activeCatId, saveData]);
+  }, [activeCatId, saveData]);
 
   const getTodaysLog = useCallback((catId: string): DailyCheckResult | undefined => {
     const cat = cats.find(c => c.id === catId);
@@ -109,17 +127,29 @@ export function useCatStorage() {
     return count;
   }, [cats]);
 
-  return {
-    cats,
-    activeCat,
-    activeCatId,
-    isLoaded,
-    addCat,
-    updateCat,
-    deleteCat,
-    selectCat,
-    saveCareLog,
-    getTodaysLog,
-    getConsecutiveNoPoop,
-  };
+  return (
+    <CatStorageContext.Provider value={{
+      cats,
+      activeCat,
+      activeCatId,
+      isLoaded,
+      addCat,
+      updateCat,
+      deleteCat,
+      selectCat,
+      saveCareLog,
+      getTodaysLog,
+      getConsecutiveNoPoop,
+    }}>
+      {children}
+    </CatStorageContext.Provider>
+  );
+}
+
+export function useCatStorage() {
+  const context = useContext(CatStorageContext);
+  if (!context) {
+    throw new Error('useCatStorage must be used within a CatStorageProvider');
+  }
+  return context;
 }
