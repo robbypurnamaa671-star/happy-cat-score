@@ -13,6 +13,17 @@ export interface DailyCheckResult {
   alerts: string[];
 }
 
+export interface CatProfile {
+  id: string;
+  name: string;
+  photo?: string;
+  gender?: 'male' | 'female' | 'unknown';
+  age?: string;
+  notes?: string;
+  createdAt: string;
+  careLogs: DailyCheckResult[];
+}
+
 export interface Question {
   id: string;
   title: string;
