@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CatProfile } from '@/types/catCare';
-import { useCatStorage } from '@/hooks/useCatStorage';
+import { useCatStorage, CatStorageProvider } from '@/hooks/useCatStorage';
 import { Home } from '@/components/Home';
 import { DailyCheck } from '@/components/DailyCheck';
 import { History } from '@/components/History';
@@ -9,7 +9,7 @@ import { CatProfileForm } from '@/components/CatProfileForm';
 
 type View = 'loading' | 'onboarding' | 'home' | 'check' | 'history' | 'add-cat' | 'edit-cat';
 
-const Index = () => {
+function IndexContent() {
   const { cats, isLoaded, addCat, updateCat, deleteCat } = useCatStorage();
   const [view, setView] = useState<View>('loading');
   const [editingCat, setEditingCat] = useState<CatProfile | null>(null);
@@ -18,11 +18,11 @@ const Index = () => {
     if (isLoaded) {
       if (cats.length === 0) {
         setView('onboarding');
-      } else {
+      } else if (view === 'loading' || view === 'onboarding') {
         setView('home');
       }
     }
-  }, [isLoaded, cats.length]);
+  }, [isLoaded, cats.length, view]);
 
   const handleAddCat = (data: { name: string; photo?: string; gender?: 'male' | 'female' | 'unknown'; age?: string; notes?: string }) => {
     addCat(data);
@@ -102,6 +102,14 @@ const Index = () => {
         />
       )}
     </div>
+  );
+}
+
+const Index = () => {
+  return (
+    <CatStorageProvider>
+      <IndexContent />
+    </CatStorageProvider>
   );
 };
 
