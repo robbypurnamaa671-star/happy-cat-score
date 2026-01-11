@@ -14,15 +14,15 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
+      // Keep the splash short and let the plugin auto-hide.
+      // (Avoid custom layout/dialog options that can block touches on some devices.)
       launchShowDuration: 2000,
       launchAutoHide: true,
       backgroundColor: '#f7f5f0',
       showSpinner: false,
       androidSpinnerStyle: 'small',
       splashFullScreen: true,
-      splashImmersive: true,
-      layoutName: 'launch_screen',
-      useDialog: true
+      splashImmersive: true
     },
     StatusBar: {
       style: 'LIGHT',

@@ -15,12 +15,17 @@ function IndexContent() {
   const [editingCat, setEditingCat] = useState<CatProfile | null>(null);
 
   useEffect(() => {
-    if (isLoaded) {
-      if (cats.length === 0) {
-        setView('onboarding');
-      } else if (view === 'loading' || view === 'onboarding') {
-        setView('home');
-      }
+    if (!isLoaded) return;
+
+    // Only decide the initial landing view.
+    // Don't override user-driven navigation like "add-cat".
+    if (cats.length === 0) {
+      if (view === 'loading') setView('onboarding');
+      return;
+    }
+
+    if (view === 'loading' || view === 'onboarding') {
+      setView('home');
     }
   }, [isLoaded, cats.length, view]);
 
@@ -68,7 +73,10 @@ function IndexContent() {
   return (
     <div className="font-nunito">
       {view === 'onboarding' && (
-        <Onboarding onAddCat={() => setView('add-cat')} />
+        <Onboarding onAddCat={() => {
+          console.log('[onboarding] Add first cat clicked');
+          setView('add-cat');
+        }} />
       )}
       {view === 'home' && (
         <Home
