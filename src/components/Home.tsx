@@ -4,8 +4,9 @@ import { getStatusDisplay } from '@/utils/scoreCalculator';
 import { ScoreCircle } from './ScoreCircle';
 import { CatSelector } from './CatSelector';
 import { CatIcon } from './CatIcon';
-import { ClipboardCheck, History as HistoryIcon, Heart, Settings } from 'lucide-react';
+import { ClipboardCheck, History as HistoryIcon, Heart, Settings, Info } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 interface HomeProps {
   onStartCheck: () => void;
@@ -136,9 +137,27 @@ export function Home({ onStartCheck, onViewHistory, onAddCat, onEditCat }: HomeP
           </div>
         )}
 
+        {/* Footer Links */}
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <Link 
+            to="/about" 
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Info className="w-4 h-4" />
+            About
+          </Link>
+          <span className="text-muted-foreground">•</span>
+          <Link 
+            to="/privacy" 
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Privacy
+          </Link>
+        </div>
+
         {/* Disclaimer */}
-        <p className="text-xs text-center text-muted-foreground mt-8 px-4">
-          This app does not provide medical advice or diagnosis. It helps track daily care patterns only.
+        <p className="text-xs text-center text-muted-foreground mt-4 px-4">
+          This app does not provide medical advice or diagnosis.
         </p>
       </div>
     </div>
