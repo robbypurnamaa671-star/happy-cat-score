@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DailyCheckResult } from '@/types/catCare';
-import { useCareStorage } from '@/hooks/useCareStorage';
+import { useCatStorage } from '@/hooks/useCatStorage';
 import { HistoryChart } from './HistoryChart';
 import { HistoryList } from './HistoryList';
 import { ResultSummary } from './ResultSummary';
@@ -11,13 +11,16 @@ interface HistoryProps {
 }
 
 export function History({ onBack }: HistoryProps) {
-  const { history } = useCareStorage();
+  const { activeCat } = useCatStorage();
   const [selectedResult, setSelectedResult] = useState<DailyCheckResult | null>(null);
+
+  const history = activeCat?.careLogs || [];
 
   if (selectedResult) {
     return (
       <ResultSummary
         result={selectedResult}
+        catName={activeCat?.name}
         onDone={() => setSelectedResult(null)}
       />
     );
@@ -34,7 +37,14 @@ export function History({ onBack }: HistoryProps) {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl font-bold text-foreground">History</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">History</h1>
+            {activeCat && (
+              <p className="text-sm text-muted-foreground">
+                🐾 {activeCat.name}'s care logs
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Chart */}

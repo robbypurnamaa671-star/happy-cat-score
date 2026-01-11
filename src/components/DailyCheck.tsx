@@ -5,8 +5,8 @@ import { calculateScore, getStatus, getAlerts } from '@/utils/scoreCalculator';
 import { QuestionCard } from './QuestionCard';
 import { ProgressBar } from './ProgressBar';
 import { ResultSummary } from './ResultSummary';
-import { useCareStorage } from '@/hooks/useCareStorage';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useCatStorage } from '@/hooks/useCatStorage';
+import { ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DailyCheckProps {
@@ -14,13 +14,69 @@ interface DailyCheckProps {
 }
 
 export function DailyCheck({ onComplete }: DailyCheckProps) {
+  const { activeCat, activeCatId, saveCareLog, getTodaysLog, getConsecutiveNoPoop } = useCatStorage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<DailyCheckAnswer[]>([]);
   const [result, setResult] = useState<DailyCheckResult | null>(null);
-  const { saveResult, getConsecutiveNoPoop } = useCareStorage();
+
+  const existingLog = activeCatId ? getTodaysLog(activeCatId) : undefined;
+  const [showExistingWarning, setShowExistingWarning] = useState(!!existingLog);
 
   const currentQuestion = careQuestions[currentIndex];
   const currentAnswer = answers.find(a => a.questionId === currentQuestion?.id);
+
+  if (!activeCat || !activeCatId) {
+    return (
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">Please select a cat first</p>
+          <button
+            onClick={onComplete}
+            className="mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-xl font-medium"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (showExistingWarning && existingLog) {
+    return (
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center">
+          <div className="w-16 h-16 bg-warning/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-warning" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground mb-2">
+            Already Checked Today
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            You've already completed a check for <strong>{activeCat.name}</strong> today. 
+            Would you like to update it?
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                // Pre-fill with existing answers
+                setAnswers(existingLog.answers);
+                setShowExistingWarning(false);
+              }}
+              className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold shadow-warm"
+            >
+              Update Today's Check
+            </button>
+            <button
+              onClick={onComplete}
+              className="w-full py-3 bg-secondary text-secondary-foreground rounded-2xl font-medium"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSelect = (option: QuestionOption) => {
     const newAnswer: DailyCheckAnswer = {
@@ -42,7 +98,7 @@ export function DailyCheck({ onComplete }: DailyCheckProps) {
       // Complete the check
       const score = calculateScore(answers);
       const status = getStatus(score);
-      const consecutiveNoPoop = getConsecutiveNoPoop();
+      const consecutiveNoPoop = getConsecutiveNoPoop(activeCatId);
       const alerts = getAlerts(answers, consecutiveNoPoop + (answers.find(a => a.questionId === 'defecation')?.value === 'none' ? 1 : 0));
 
       const checkResult: DailyCheckResult = {
@@ -54,7 +110,7 @@ export function DailyCheck({ onComplete }: DailyCheckProps) {
         alerts,
       };
 
-      saveResult(checkResult);
+      saveCareLog(activeCatId, checkResult);
       setResult(checkResult);
     }
   };
@@ -66,12 +122,19 @@ export function DailyCheck({ onComplete }: DailyCheckProps) {
   };
 
   if (result) {
-    return <ResultSummary result={result} onDone={onComplete} />;
+    return <ResultSummary result={result} catName={activeCat.name} onDone={onComplete} />;
   }
 
   return (
     <div className="min-h-screen bg-background p-6 flex flex-col">
       <div className="max-w-md mx-auto w-full flex-1 flex flex-col">
+        {/* Cat Name Banner */}
+        <div className="bg-primary/10 rounded-xl px-4 py-2 mb-4 text-center">
+          <span className="text-sm font-medium text-primary">
+            🐾 Checking in for {activeCat.name}
+          </span>
+        </div>
+
         {/* Progress */}
         <ProgressBar
           current={currentIndex + 1}

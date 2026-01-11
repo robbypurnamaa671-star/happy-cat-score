@@ -8,10 +8,11 @@ import { Lightbulb } from 'lucide-react';
 
 interface ResultSummaryProps {
   result: DailyCheckResult;
+  catName?: string;
   onDone: () => void;
 }
 
-export function ResultSummary({ result, onDone }: ResultSummaryProps) {
+export function ResultSummary({ result, catName, onDone }: ResultSummaryProps) {
   const statusDisplay = getStatusDisplay(result.status);
   const tip = getRandomTip(careTips);
 
@@ -30,8 +31,10 @@ export function ResultSummary({ result, onDone }: ResultSummaryProps) {
             className="w-20 h-20 mx-auto mb-4"
             variant={result.status === 'excellent' ? 'happy' : result.status === 'attention' ? 'sleepy' : 'alert'}
           />
-          <h1 className="text-2xl font-bold text-foreground mb-2">Daily Check Complete!</h1>
-          <p className="text-muted-foreground">Here's your cat's care summary</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            {catName ? `${catName}'s Check Complete!` : 'Daily Check Complete!'}
+          </h1>
+          <p className="text-muted-foreground">Here's the care summary</p>
         </div>
 
         {/* Score */}
